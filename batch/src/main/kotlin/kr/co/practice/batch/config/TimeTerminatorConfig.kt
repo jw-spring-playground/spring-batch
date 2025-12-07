@@ -13,47 +13,45 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Configuration
-class SystemTerminatorConfig {
+class TimeTerminatorConfig {
     @Bean
-    fun processTerminatorJob(
+    fun timeTerminatorJob(
         jobRepository: JobRepository,
-        terminationStep: Step,
+        timeTerminationStep: Step,
     ): Job =
-        JobBuilder("processTerminatorJob", jobRepository)
-            .start(terminationStep)
+        JobBuilder("timeTerminatorJob", jobRepository)
+            .start(timeTerminationStep)
             .build()
 
     @Bean
-    fun terminationStep(
+    fun timeTerminationStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        terminatorTasklet: Tasklet,
+        timeTerminatorTasklet: Tasklet,
     ): Step =
-        StepBuilder("terminationStep", jobRepository)
-            .tasklet(terminatorTasklet, transactionManager)
+        StepBuilder("timeTerminationStep", jobRepository)
+            .tasklet(timeTerminatorTasklet, transactionManager)
             .build()
 
     /**
-     *  @Value를 사용해 잡 파라미터를 전달하려면 @StepScope가 필요하다.
+     *  localDateTime, LocalDate 모두 가능하다.
+     *  ZonedDateTime은 지원하지않는다.
+     *  전달할 때는 ISO 표준으로 전달해야한다.
      **/
     @Bean
     @StepScope
-    fun terminatorTasklet(
-        @Value("#{jobParameters['terminatorId']}") terminatorId: String,
-        @Value("#{jobParameters['targetCount']}") targetCount: Int,
+    fun timeTerminatorTasklet(
+        @Value("#{jobParameters['executionDate']}") executionDate: LocalDate,
+        @Value("#{jobParameters['startTime']}") startTime: LocalDateTime,
     ): Tasklet =
         Tasklet { contribution, chunkContext ->
             kLogger.info("실행자 정보:")
-            kLogger.info("ID: {}", terminatorId)
-            kLogger.info("제거 대상 수: {}", targetCount)
-            kLogger.info("⚡ SYSTEM TERMINATOR {} 개시합니다.", terminatorId)
-            kLogger.info("☠️ {}개의 프로세스를 종료합니다.", targetCount)
-
-            for (i in 1..targetCount) {
-                kLogger.info("💀 프로세스 {} 종료 완료!", i)
-            }
+            kLogger.info("실행 일시: {}", executionDate)
+            kLogger.info("시작 시각: {}", startTime)
 
             kLogger.info("🎯 임무 완료: 모든 대상 프로세스가 종료되었습니다.")
             RepeatStatus.FINISHED
