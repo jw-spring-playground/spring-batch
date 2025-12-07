@@ -23,6 +23,9 @@ Kotlin으로 구현한 Spring Batch 학습 프로젝트입니다.
 
 # pojo로 파라미터를 넣었을 떄
 bootRun --args='--spring.batch.job.name=jobParameterJob startDateTime=2024-07-25T10:00:00,java.time.LocalDateTime teminateId=100,java.lang.Long status=START,kr.co.practice.batch.tasklet.command.JobParameterStatus name=daily-report'
+
+# jobParameters로 파라미터 받을 때 (& validator 사용)
+bootRun --args='--spring.batch.job.name=programJobParameterJob name=daily-report'
 ```
 
 ### JAR 파일로 실행
